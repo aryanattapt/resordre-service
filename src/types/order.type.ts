@@ -6,7 +6,10 @@ export interface OrderItem extends MenuItem {
 
 export interface Order {
   businessId: string;
-  tableId: string;
+  tableId?: string;
+  customerId?: string;
+  type: "dine-in" | "delivery";
+  status: "pending" | "in-progress" | "ready" | "completed" | "cancelled";
   menu: OrderItem[];
   subtotal: number;
   tax: number;
