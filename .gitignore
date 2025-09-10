@@ -1,0 +1,30 @@
+# Keep environment variables out of version control
+.env
+.env.production
+
+# Ignore generated Prisma client
+/generated/prisma
+
+# Node modules
+node_modules/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+dist/
+
+# Prisma
+prisma/dev.db
+prisma/dev.db-journal
+
+# TypeScript
+*.tsbuildinfo
+
+# VS Code settings
+.vscode/
+.DS_Store
