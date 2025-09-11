@@ -1,4 +1,4 @@
-import type { HelloParams } from '../types/hello.model.js';
+import type { HelloParams } from '../types/hello.type';
 
 export class HelloService {
     sayHello(params: HelloParams): string {

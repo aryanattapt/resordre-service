@@ -9,7 +9,7 @@ import type {
     TooManyRequestsResponse,
     InternalServerErrorResponse,
     MethodNotAllowedResponse
-} from '../types/response.model';
+} from '../types/response.type';
 
 // Success Responses
 export function sendSuccess<T>(res: Response, data?: T, message?: string, code: 200 | 201 | 204 = 200) {

@@ -1,6 +1,8 @@
 # Keep environment variables out of version control
-.env
-.env.production
+.env.*
+
+# Ignore generated Prisma client
+/generated/prisma/
 
 # Node modules
 node_modules/

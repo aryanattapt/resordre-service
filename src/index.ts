@@ -3,9 +3,7 @@ import route from './routes/index.route'; // Correct
 import dotenv from 'dotenv';
 import cors from 'cors';
 import helmet from 'helmet';
-dotenv.config({
-    path: `.env.development`,
-});
+dotenv.config();
 
 const app = express();
 const port = process.env.PORT;
