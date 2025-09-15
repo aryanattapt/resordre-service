@@ -7,11 +7,21 @@ export interface MenuItemOption {
 export interface MenuItem {
   itemId: string;
   itemName: string;
-  categoryId: string;
-  categoryName: string;
   description: string;
   price: number;
   imageUrl: string;
   isAvailable: boolean;
   options: MenuItemOption[];
+}
+
+export interface CategoryItemOrder {
+  categoryId: string;
+  categoryName: string;
+  menus: MenuItem[];
+}
+
+export interface MenuOrderResponse {
+  restaurantId: string;
+  name: string;
+  items: CategoryItemOrder[];
 }
