@@ -822,9 +822,9 @@
                      "raw": "{\n  \"categoryName\": \"Appetizers\",\n  \"businessId\": \"{{businessId}}\",\n  \"isActive\": true\n}"
                   },
                   "url": {
-                     "raw": "{{baseUrl}}/menu-categories",
+                     "raw": "{{baseUrl}}/menucategory",
                      "host": ["{{baseUrl}}"],
-                     "path": ["menu-categories"]
+                     "path": ["menucategory"]
                   }
                }
             },
@@ -854,9 +854,9 @@
                   "method": "GET",
                   "header": [],
                   "url": {
-                     "raw": "{{baseUrl}}/menu-categories?businessId={{businessId}}",
+                     "raw": "{{baseUrl}}/menucategory?businessId={{businessId}}",
                      "host": ["{{baseUrl}}"],
-                     "path": ["menu-categories"],
+                     "path": ["menucategory"],
                      "query": [
                         {
                            "key": "businessId",
@@ -926,9 +926,9 @@
                      "raw": "{\n  \"itemName\": \"Chicken Wings\",\n  \"description\": \"Crispy chicken wings with your choice of sauce\",\n  \"price\": 12.99,\n  \"imageUrl\": \"https://example.com/chicken-wings.jpg\",\n  \"isAvailable\": true,\n  \"categoryId\": \"{{categoryId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"options\": [\n    {\n      \"name\": \"Spice Level\",\n      \"isRequired\": true,\n      \"maxSelections\": 1,\n      \"variants\": [\n        {\n          \"variantName\": \"Mild\",\n          \"price\": 0,\n          \"isAvailable\": true\n        },\n        {\n          \"variantName\": \"Medium\",\n          \"price\": 0,\n          \"isAvailable\": true\n        },\n        {\n          \"variantName\": \"Hot\",\n          \"price\": 1.00,\n          \"isAvailable\": true\n        }\n      ]\n    }\n  ]\n}"
                   },
                   "url": {
-                     "raw": "{{baseUrl}}/menu-items",
+                     "raw": "{{baseUrl}}/menuitem",
                      "host": ["{{baseUrl}}"],
-                     "path": ["menu-items"]
+                     "path": ["menuitem"]
                   }
                }
             },
@@ -958,9 +958,9 @@
                   "method": "GET",
                   "header": [],
                   "url": {
-                     "raw": "{{baseUrl}}/menu-items?businessId={{businessId}}",
+                     "raw": "{{baseUrl}}/menuitem?businessId={{businessId}}",
                      "host": ["{{baseUrl}}"],
-                     "path": ["menu-items"],
+                     "path": ["menuitem"],
                      "query": [
                         {
                            "key": "businessId",
@@ -1010,9 +1010,9 @@
                   "method": "GET",
                   "header": [],
                   "url": {
-                     "raw": "{{baseUrl}}/menu-categories/menu/{{businessId}}",
+                     "raw": "{{baseUrl}}/menucategory/menu/{{businessId}}",
                      "host": ["{{baseUrl}}"],
-                     "path": ["menu-categories", "menu", "{{businessId}}"]
+                     "path": ["menucategory", "menu", "{{businessId}}"]
                   }
                }
             },
@@ -1052,9 +1052,9 @@
                      "raw": "{\n  \"itemName\": \"Buffalo Wings\",\n  \"price\": 14.99,\n  \"description\": \"Spicy buffalo chicken wings with blue cheese dip\"\n}"
                   },
                   "url": {
-                     "raw": "{{baseUrl}}/menu-items/{{itemId}}",
+                     "raw": "{{baseUrl}}/menuitem/{{itemId}}",
                      "host": ["{{baseUrl}}"],
-                     "path": ["menu-items", "{{itemId}}"]
+                     "path": ["menuitem", "{{itemId}}"]
                   }
                }
             },
@@ -1096,9 +1096,9 @@
                      "raw": "{\n  \"name\": \"Size\",\n  \"isRequired\": false,\n  \"maxSelections\": 1,\n  \"variants\": [\n    {\n      \"variantName\": \"Regular\",\n      \"price\": 0,\n      \"isAvailable\": true\n    },\n    {\n      \"variantName\": \"Large\",\n      \"price\": 3.00,\n      \"isAvailable\": true\n    }\n  ]\n}"
                   },
                   "url": {
-                     "raw": "{{baseUrl}}/menu-items/{{itemId}}/options",
+                     "raw": "{{baseUrl}}/menuitem/{{itemId}}/options",
                      "host": ["{{baseUrl}}"],
-                     "path": ["menu-items", "{{itemId}}", "options"]
+                     "path": ["menuitem", "{{itemId}}", "options"]
                   }
                }
             }
