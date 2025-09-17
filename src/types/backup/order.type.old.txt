@@ -1,0 +1,20 @@
+import { MenuItem } from './menu.type';
+
+export interface OrderItem extends MenuItem {
+   note?: string;
+   quantity: number;
+}
+
+export interface Order {
+   businessId: string;
+   tableId?: string;
+   customerId?: string;
+   type: 'dine-in' | 'delivery';
+   status: 'pending' | 'in-progress' | 'ready' | 'completed' | 'cancelled';
+   menu: OrderItem[];
+   subtotal: number;
+   tax: number;
+   deliveryFee: number;
+   discount: number;
+   grandTotal: number;
+}

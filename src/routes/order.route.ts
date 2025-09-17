@@ -1,13 +1,78 @@
+// routes/order.route.ts
 import { Router } from 'express';
 import OrderController from '../controllers/order.controller';
 import { authenticate, authorize } from '../middleware/auth.middleware';
-import { body, param } from 'express-validator';
+import { orderValidation } from '../middleware/ordervalidation.middleware';
+import { UserRole } from '../types/auth.type';
 
 const router = Router();
 
-router.get('/', authenticate, OrderController.getAll);
-router.get('/:id', authenticate, [param('id').isUUID()], OrderController.getOne);
-router.post('/', authenticate, [body('business_id').isUUID(), body('type').isIn(['dine_in','delivery']), body('orderItems').isArray({ min: 1 })], OrderController.create);
-router.put('/:id/status', authenticate, authorize(['admin','staff']), [param('id').isUUID(), body('status').isIn(['pending','in_progress','ready','completed','cancelled'])], OrderController.updateStatus);
+// Order CRUD
+router.get('/', authenticate, orderValidation.getAll, OrderController.getAll);
+router.get(
+   '/:id',
+   authenticate,
+   orderValidation.getOne,
+   OrderController.getOne
+);
+router.get(
+   '/business/:businessId/order-number/:orderNumber',
+   authenticate,
+   orderValidation.getByOrderNumber,
+   OrderController.getByOrderNumber
+);
+router.post('/', authenticate, orderValidation.create, OrderController.create);
+router.put(
+   '/:id',
+   authenticate,
+   authorize([
+      UserRole.ADMIN,
+      UserRole.OWNER,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+   ]),
+   orderValidation.update,
+   OrderController.update
+);
+router.post(
+   '/:id/cancel',
+   authenticate,
+   authorize([
+      UserRole.ADMIN,
+      UserRole.OWNER,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+   ]),
+   orderValidation.cancel,
+   OrderController.cancel
+);
+
+// Payments
+router.post(
+   '/:id/payments',
+   authenticate,
+   authorize([
+      UserRole.ADMIN,
+      UserRole.OWNER,
+      UserRole.MANAGER,
+      UserRole.STAFF,
+   ]),
+   orderValidation.addPayment,
+   OrderController.addPayment
+);
+
+// Statistics
+router.get(
+   '/business/:businessId/stats',
+   authenticate,
+   orderValidation.getStats,
+   OrderController.getBusinessStats
+);
+router.get(
+   '/business/:businessId/dashboard',
+   authenticate,
+   orderValidation.getStats,
+   OrderController.getDashboardStats
+);
 
 export default router;

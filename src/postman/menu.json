@@ -1,0 +1,1829 @@
+{
+   "info": {
+      "name": "Resordre API Collection",
+      "description": "Complete test suite for POS Restaurant API including Authentication, Business Management, Menu Management, and Order Management",
+      "version": "2.1.0",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+   },
+   "auth": {
+      "type": "bearer",
+      "bearer": [
+         {
+            "key": "token",
+            "value": "{{authToken}}",
+            "type": "string"
+         }
+      ]
+   },
+   "variable": [
+      {
+         "key": "baseUrl",
+         "value": "http://localhost:3001",
+         "type": "string"
+      },
+      {
+         "key": "authToken",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "refreshToken",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "userId",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "businessId",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "categoryId",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "itemId",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "optionId",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "variantId",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "orderId",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "orderNumber",
+         "value": "",
+         "type": "string"
+      },
+      {
+         "key": "paymentId",
+         "value": "",
+         "type": "string"
+      }
+   ],
+   "item": [
+      {
+         "name": "🔐 Authentication",
+         "item": [
+            {
+               "name": "Register User",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"User registered successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('userId');",
+                           "    pm.expect(jsonData.data).to.have.property('userName');",
+                           "    pm.expect(jsonData.data).to.have.property('email');",
+                           "    pm.expect(jsonData.message).to.eql('User registered successfully');",
+                           "    ",
+                           "    // Store user ID for later use",
+                           "    if (jsonData.data.userId) {",
+                           "        pm.collectionVariables.set('userId', jsonData.data.userId);",
+                           "    }",
+                           "});",
+                           "",
+                           "pm.test(\"User data structure is correct\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.data).to.have.property('userName', 'testuser');",
+                           "    pm.expect(jsonData.data).to.have.property('fullname', 'Test User');",
+                           "    pm.expect(jsonData.data).to.have.property('email', 'test@example.com');",
+                           "    pm.expect(jsonData.data).to.have.property('role');",
+                           "    pm.expect(jsonData.data).to.have.property('isActive');",
+                           "    pm.expect(jsonData.data).to.not.have.property('password');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "auth": {
+                     "type": "noauth"
+                  },
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"userName\": \"testuser\",\n  \"fullname\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"password\": \"TestPassword123\",\n  \"role\": \"admin\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/register",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "register"]
+                  }
+               }
+            },
+            {
+               "name": "Login User",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Login successful\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('user');",
+                           "    pm.expect(jsonData.data).to.have.property('tokens');",
+                           "    pm.expect(jsonData.message).to.eql('Login successful');",
+                           "});",
+                           "",
+                           "pm.test(\"Tokens are provided\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.data.tokens).to.have.property('accessToken');",
+                           "    pm.expect(jsonData.data.tokens).to.have.property('refreshToken');",
+                           "    pm.expect(jsonData.data.tokens).to.have.property('expiresIn');",
+                           "    pm.expect(jsonData.data.tokens).to.have.property('tokenType', 'Bearer');",
+                           "    ",
+                           "    // Store tokens for later use",
+                           "    pm.collectionVariables.set('authToken', jsonData.data.tokens.accessToken);",
+                           "    pm.collectionVariables.set('refreshToken', jsonData.data.tokens.refreshToken);",
+                           "});",
+                           "",
+                           "pm.test(\"User data includes businesses\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.data.user).to.have.property('businesses');",
+                           "    pm.expect(jsonData.data.user.businesses).to.be.an('array');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "auth": {
+                     "type": "noauth"
+                  },
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"identifier\": \"test@example.com\",\n  \"password\": \"TestPassword123\",\n  \"rememberMe\": false\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/login",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "login"]
+                  }
+               }
+            },
+            {
+               "name": "Get Profile",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Profile fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('userId');",
+                           "    pm.expect(jsonData.data).to.have.property('userName');",
+                           "    pm.expect(jsonData.data).to.have.property('email');",
+                           "    pm.expect(jsonData.data).to.have.property('businesses');",
+                           "    pm.expect(jsonData.message).to.eql('Profile fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/profile",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "profile"]
+                  }
+               }
+            },
+            {
+               "name": "Refresh Token",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Token refreshed successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('accessToken');",
+                           "    pm.expect(jsonData.data).to.have.property('refreshToken');",
+                           "    pm.expect(jsonData.message).to.eql('Token refreshed successfully');",
+                           "    ",
+                           "    // Update tokens",
+                           "    pm.collectionVariables.set('authToken', jsonData.data.accessToken);",
+                           "    pm.collectionVariables.set('refreshToken', jsonData.data.refreshToken);",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "auth": {
+                     "type": "noauth"
+                  },
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/refresh",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "refresh"]
+                  }
+               }
+            },
+            {
+               "name": "Change Password",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Password changed successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.message).to.eql('Password changed successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"currentPassword\": \"TestPassword123\",\n  \"newPassword\": \"NewTestPassword123\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/change-password",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "change-password"]
+                  }
+               }
+            },
+            {
+               "name": "Forgot Password",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Password reset email sent\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.message).to.include('password reset');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "auth": {
+                     "type": "noauth"
+                  },
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"email\": \"test@example.com\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/forgot-password",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "forgot-password"]
+                  }
+               }
+            },
+            {
+               "name": "Verify Token",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Token is valid\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('valid', true);",
+                           "    pm.expect(jsonData.data).to.have.property('user');",
+                           "    pm.expect(jsonData.message).to.eql('Token is valid');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/verify",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "verify"]
+                  }
+               }
+            },
+            {
+               "name": "Logout",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Logout successful\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.message).to.eql('Logout successful');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/logout",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "logout"]
+                  }
+               }
+            }
+         ]
+      },
+      {
+         "name": "🏢 Business Management",
+         "item": [
+            {
+               "name": "Create Business",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"Business created successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('businessId');",
+                           "    pm.expect(jsonData.data).to.have.property('businessName', 'Test Restaurant');",
+                           "    pm.expect(jsonData.data).to.have.property('businessEmail', 'restaurant@test.com');",
+                           "    pm.expect(jsonData.message).to.eql('Business created successfully');",
+                           "    ",
+                           "    // Store business ID",
+                           "    pm.collectionVariables.set('businessId', jsonData.data.businessId);",
+                           "});",
+                           "",
+                           "pm.test(\"Business structure is correct\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.data).to.have.property('businessType', 'restaurant');",
+                           "    pm.expect(jsonData.data).to.have.property('taxRate', 0.08);",
+                           "    pm.expect(jsonData.data).to.have.property('currency', 'USD');",
+                           "    pm.expect(jsonData.data).to.have.property('isActive', true);",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"businessName\": \"Test Restaurant\",\n  \"businessAddress\": \"123 Main Street, City, State 12345\",\n  \"businessPhoneNum\": \"+1234567890\",\n  \"businessEmail\": \"restaurant@test.com\",\n  \"businessType\": \"restaurant\",\n  \"ownerId\": \"{{userId}}\",\n  \"taxRate\": 0.08,\n  \"currency\": \"USD\",\n  \"timezone\": \"America/New_York\",\n  \"businessWebsite\": \"https://testrestaurant.com\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses"]
+                  }
+               }
+            },
+            {
+               "name": "Get All Businesses",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Businesses fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('businesses');",
+                           "    pm.expect(jsonData.data).to.have.property('total');",
+                           "    pm.expect(jsonData.data).to.have.property('page');",
+                           "    pm.expect(jsonData.data).to.have.property('totalPages');",
+                           "    pm.expect(jsonData.data.businesses).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Businesses fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses?page=1&limit=10&isActive=true",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses"],
+                     "query": [
+                        {
+                           "key": "page",
+                           "value": "1"
+                        },
+                        {
+                           "key": "limit",
+                           "value": "10"
+                        },
+                        {
+                           "key": "isActive",
+                           "value": "true"
+                        }
+                     ]
+                  }
+               }
+            },
+            {
+               "name": "Get Business by ID",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Business fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('businessId', pm.collectionVariables.get('businessId'));",
+                           "    pm.expect(jsonData.data).to.have.property('businessName');",
+                           "    pm.expect(jsonData.message).to.eql('Business fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses/{{businessId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses", "{{businessId}}"]
+                  }
+               }
+            },
+            {
+               "name": "Get Business with Users",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Business with users fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('businessId');",
+                           "    pm.expect(jsonData.data).to.have.property('users');",
+                           "    pm.expect(jsonData.data.users).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Business with users fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses/{{businessId}}/with-users",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses", "{{businessId}}", "with-users"]
+                  }
+               }
+            },
+            {
+               "name": "Update Business",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Business updated successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('businessName', 'Updated Test Restaurant');",
+                           "    pm.expect(jsonData.data).to.have.property('taxRate', 0.10);",
+                           "    pm.expect(jsonData.message).to.eql('Business updated successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "PUT",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"businessName\": \"Updated Test Restaurant\",\n  \"businessAddress\": \"456 Updated Street, New City, State 54321\",\n  \"taxRate\": 0.10\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses/{{businessId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses", "{{businessId}}"]
+                  }
+               }
+            },
+            {
+               "name": "Get Business Statistics",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Business statistics fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('totalMenuItems');",
+                           "    pm.expect(jsonData.data).to.have.property('totalCategories');",
+                           "    pm.expect(jsonData.data).to.have.property('totalOrders');",
+                           "    pm.expect(jsonData.data).to.have.property('totalActiveUsers');",
+                           "    pm.expect(jsonData.data).to.have.property('revenue');",
+                           "    pm.expect(jsonData.data.revenue).to.have.property('today');",
+                           "    pm.expect(jsonData.data.revenue).to.have.property('thisWeek');",
+                           "    pm.expect(jsonData.data.revenue).to.have.property('thisMonth');",
+                           "    pm.expect(jsonData.message).to.eql('Business statistics fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses/{{businessId}}/stats",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses", "{{businessId}}", "stats"]
+                  }
+               }
+            },
+            {
+               "name": "Add User to Business",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"User added to business successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('userId');",
+                           "    pm.expect(jsonData.data).to.have.property('businessId');",
+                           "    pm.expect(jsonData.data).to.have.property('role', 'staff');",
+                           "    pm.expect(jsonData.message).to.eql('User added to business successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"role\": \"staff\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses/{{businessId}}/users",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses", "{{businessId}}", "users"]
+                  }
+               }
+            },
+            {
+               "name": "Get Business Users",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Business users fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Business users fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses/{{businessId}}/users",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses", "{{businessId}}", "users"]
+                  }
+               }
+            }
+         ]
+      },
+      {
+         "name": "🍽️ Menu Management",
+         "item": [
+            {
+               "name": "Create Menu Category",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"Category created successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('categoryId');",
+                           "    pm.expect(jsonData.data).to.have.property('categoryName', 'Appetizers');",
+                           "    pm.expect(jsonData.data).to.have.property('businessId', pm.collectionVariables.get('businessId'));",
+                           "    pm.expect(jsonData.message).to.eql('Category created successfully');",
+                           "    ",
+                           "    // Store category ID",
+                           "    pm.collectionVariables.set('categoryId', jsonData.data.categoryId);",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"categoryName\": \"Appetizers\",\n  \"businessId\": \"{{businessId}}\",\n  \"isActive\": true\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/menu-categories",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["menu-categories"]
+                  }
+               }
+            },
+            {
+               "name": "Get All Categories",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Categories fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Categories fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/menu-categories?businessId={{businessId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["menu-categories"],
+                     "query": [
+                        {
+                           "key": "businessId",
+                           "value": "{{businessId}}"
+                        }
+                     ]
+                  }
+               }
+            },
+            {
+               "name": "Create Menu Item with Options",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"Menu item created successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('itemId');",
+                           "    pm.expect(jsonData.data).to.have.property('itemName', 'Chicken Wings');",
+                           "    pm.expect(jsonData.data).to.have.property('price', 12.99);",
+                           "    pm.expect(jsonData.data).to.have.property('options');",
+                           "    pm.expect(jsonData.data.options).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Menu item created successfully');",
+                           "    ",
+                           "    // Store IDs",
+                           "    pm.collectionVariables.set('itemId', jsonData.data.itemId);",
+                           "    if (jsonData.data.options.length > 0) {",
+                           "        pm.collectionVariables.set('optionId', jsonData.data.options[0].optionId);",
+                           "        if (jsonData.data.options[0].variants.length > 0) {",
+                           "            pm.collectionVariables.set('variantId', jsonData.data.options[0].variants[0].variantId);",
+                           "        }",
+                           "    }",
+                           "});",
+                           "",
+                           "pm.test(\"Options and variants created\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    if (jsonData.data.options.length > 0) {",
+                           "        var option = jsonData.data.options[0];",
+                           "        pm.expect(option).to.have.property('name', 'Spice Level');",
+                           "        pm.expect(option).to.have.property('isRequired', true);",
+                           "        pm.expect(option).to.have.property('variants');",
+                           "        pm.expect(option.variants).to.be.an('array');",
+                           "        pm.expect(option.variants.length).to.be.greaterThan(0);",
+                           "    }",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"itemName\": \"Chicken Wings\",\n  \"description\": \"Crispy chicken wings with your choice of sauce\",\n  \"price\": 12.99,\n  \"imageUrl\": \"https://example.com/chicken-wings.jpg\",\n  \"isAvailable\": true,\n  \"categoryId\": \"{{categoryId}}\",\n  \"businessId\": \"{{businessId}}\",\n  \"options\": [\n    {\n      \"name\": \"Spice Level\",\n      \"isRequired\": true,\n      \"maxSelections\": 1,\n      \"variants\": [\n        {\n          \"variantName\": \"Mild\",\n          \"price\": 0,\n          \"isAvailable\": true\n        },\n        {\n          \"variantName\": \"Medium\",\n          \"price\": 0,\n          \"isAvailable\": true\n        },\n        {\n          \"variantName\": \"Hot\",\n          \"price\": 1.00,\n          \"isAvailable\": true\n        }\n      ]\n    }\n  ]\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/menu-items",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["menu-items"]
+                  }
+               }
+            },
+            {
+               "name": "Get All Menu Items",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Menu items fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Menu items fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/menu-items?businessId={{businessId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["menu-items"],
+                     "query": [
+                        {
+                           "key": "businessId",
+                           "value": "{{businessId}}"
+                        }
+                     ]
+                  }
+               }
+            },
+            {
+               "name": "Get Menu for Order",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Menu for order fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('restaurantId');",
+                           "    pm.expect(jsonData.data).to.have.property('name');",
+                           "    pm.expect(jsonData.data).to.have.property('items');",
+                           "    pm.expect(jsonData.data.items).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Menu fetched successfully for order');",
+                           "});",
+                           "",
+                           "pm.test(\"Menu structure is correct\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    if (jsonData.data.items.length > 0) {",
+                           "        var category = jsonData.data.items[0];",
+                           "        pm.expect(category).to.have.property('categoryId');",
+                           "        pm.expect(category).to.have.property('categoryName');",
+                           "        pm.expect(category).to.have.property('menus');",
+                           "        pm.expect(category.menus).to.be.an('array');",
+                           "    }",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/menu-categories/menu/{{businessId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["menu-categories", "menu", "{{businessId}}"]
+                  }
+               }
+            },
+            {
+               "name": "Update Menu Item",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Menu item updated successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('itemName', 'Buffalo Wings');",
+                           "    pm.expect(jsonData.data).to.have.property('price', 14.99);",
+                           "    pm.expect(jsonData.message).to.eql('Menu item updated successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "PUT",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"itemName\": \"Buffalo Wings\",\n  \"price\": 14.99,\n  \"description\": \"Spicy buffalo chicken wings with blue cheese dip\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/menu-items/{{itemId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["menu-items", "{{itemId}}"]
+                  }
+               }
+            },
+            {
+               "name": "Add Menu Item Option",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"Option created successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('optionId');",
+                           "    pm.expect(jsonData.data).to.have.property('name', 'Size');",
+                           "    pm.expect(jsonData.data).to.have.property('variants');",
+                           "    pm.expect(jsonData.data.variants).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Menu item option created successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"name\": \"Size\",\n  \"isRequired\": false,\n  \"maxSelections\": 1,\n  \"variants\": [\n    {\n      \"variantName\": \"Regular\",\n      \"price\": 0,\n      \"isAvailable\": true\n    },\n    {\n      \"variantName\": \"Large\",\n      \"price\": 3.00,\n      \"isAvailable\": true\n    }\n  ]\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/menu-items/{{itemId}}/options",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["menu-items", "{{itemId}}", "options"]
+                  }
+               }
+            }
+         ]
+      },
+      {
+         "name": "📝 Order Management",
+         "item": [
+            {
+               "name": "Create Order",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"Order created successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('orderId');",
+                           "    pm.expect(jsonData.data).to.have.property('orderNumber');",
+                           "    pm.expect(jsonData.data).to.have.property('businessId', pm.collectionVariables.get('businessId'));",
+                           "    pm.expect(jsonData.data).to.have.property('type', 'dine_in');",
+                           "    pm.expect(jsonData.data).to.have.property('status', 'pending');",
+                           "    pm.expect(jsonData.data).to.have.property('orderItems');",
+                           "    pm.expect(jsonData.data.orderItems).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Order created successfully');",
+                           "    ",
+                           "    // Store order info",
+                           "    pm.collectionVariables.set('orderId', jsonData.data.orderId);",
+                           "    pm.collectionVariables.set('orderNumber', jsonData.data.orderNumber);",
+                           "});",
+                           "",
+                           "pm.test(\"Order totals calculated correctly\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.data).to.have.property('subtotal');",
+                           "    pm.expect(jsonData.data).to.have.property('tax');",
+                           "    pm.expect(jsonData.data).to.have.property('grandTotal');",
+                           "    pm.expect(jsonData.data.subtotal).to.be.a('number');",
+                           "    pm.expect(jsonData.data.tax).to.be.a('number');",
+                           "    pm.expect(jsonData.data.grandTotal).to.be.a('number');",
+                           "});",
+                           "",
+                           "pm.test(\"Order items with options processed correctly\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.data.orderItems.length).to.be.greaterThan(0);",
+                           "    var orderItem = jsonData.data.orderItems[0];",
+                           "    pm.expect(orderItem).to.have.property('itemName');",
+                           "    pm.expect(orderItem).to.have.property('quantity');",
+                           "    pm.expect(orderItem).to.have.property('totalPrice');",
+                           "    pm.expect(orderItem).to.have.property('options');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"businessId\": \"{{businessId}}\",\n  \"tableId\": \"Table-5\",\n  \"customerName\": \"John Doe\",\n  \"customerPhone\": \"+1234567890\",\n  \"type\": \"dine_in\",\n  \"notes\": \"No spicy sauce on the side\",\n  \"estimatedTime\": 25,\n  \"orderItems\": [\n    {\n      \"itemId\": \"{{itemId}}\",\n      \"quantity\": 2,\n      \"specialInstructions\": \"Extra crispy\",\n      \"options\": [\n        {\n          \"optionId\": \"{{optionId}}\",\n          \"variants\": [\n            {\n              \"variantId\": \"{{variantId}}\"\n            }\n          ]\n        }\n      ]\n    }\n  ],\n  \"discount\": 0,\n  \"tipAmount\": 3.00\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/orders",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders"]
+                  }
+               }
+            },
+            {
+               "name": "Get All Orders",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Orders fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('orders');",
+                           "    pm.expect(jsonData.data).to.have.property('total');",
+                           "    pm.expect(jsonData.data).to.have.property('page');",
+                           "    pm.expect(jsonData.data).to.have.property('totalPages');",
+                           "    pm.expect(jsonData.data.orders).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Orders fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/orders?businessId={{businessId}}&page=1&limit=10&sortBy=created_at&sortOrder=desc",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders"],
+                     "query": [
+                        {
+                           "key": "businessId",
+                           "value": "{{businessId}}"
+                        },
+                        {
+                           "key": "page",
+                           "value": "1"
+                        },
+                        {
+                           "key": "limit",
+                           "value": "10"
+                        },
+                        {
+                           "key": "sortBy",
+                           "value": "created_at"
+                        },
+                        {
+                           "key": "sortOrder",
+                           "value": "desc"
+                        }
+                     ]
+                  }
+               }
+            },
+            {
+               "name": "Get Order by ID",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Order fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('orderId', pm.collectionVariables.get('orderId'));",
+                           "    pm.expect(jsonData.data).to.have.property('orderNumber');",
+                           "    pm.expect(jsonData.data).to.have.property('orderItems');",
+                           "    pm.expect(jsonData.data).to.have.property('payments');",
+                           "    pm.expect(jsonData.message).to.eql('Order fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/orders/{{orderId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders", "{{orderId}}"]
+                  }
+               }
+            },
+            {
+               "name": "Get Order by Number",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Order fetched by number successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('orderNumber', pm.collectionVariables.get('orderNumber'));",
+                           "    pm.expect(jsonData.message).to.eql('Order fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/orders/business/{{businessId}}/order-number/{{orderNumber}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": [
+                        "orders",
+                        "business",
+                        "{{businessId}}",
+                        "order-number",
+                        "{{orderNumber}}"
+                     ]
+                  }
+               }
+            },
+            {
+               "name": "Update Order Status",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Order updated successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('status', 'confirmed');",
+                           "    pm.expect(jsonData.data).to.have.property('estimatedTime', 30);",
+                           "    pm.expect(jsonData.message).to.eql('Order updated successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "PUT",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"status\": \"confirmed\",\n  \"estimatedTime\": 30,\n  \"notes\": \"Order confirmed by kitchen\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/orders/{{orderId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders", "{{orderId}}"]
+                  }
+               }
+            },
+            {
+               "name": "Add Payment to Order",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"Payment added successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('paymentId');",
+                           "    pm.expect(jsonData.data).to.have.property('orderId', pm.collectionVariables.get('orderId'));",
+                           "    pm.expect(jsonData.data).to.have.property('amount');",
+                           "    pm.expect(jsonData.data).to.have.property('paymentMethod', 'cash');",
+                           "    pm.expect(jsonData.data).to.have.property('status', 'paid');",
+                           "    pm.expect(jsonData.message).to.eql('Payment added successfully');",
+                           "    ",
+                           "    // Store payment ID",
+                           "    pm.collectionVariables.set('paymentId', jsonData.data.paymentId);",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"amount\": 35.50,\n  \"paymentMethod\": \"cash\",\n  \"reference\": \"CASH-001\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/orders/{{orderId}}/payments",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders", "{{orderId}}", "payments"]
+                  }
+               }
+            },
+            {
+               "name": "Get Business Order Statistics",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Order statistics fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('totalOrders');",
+                           "    pm.expect(jsonData.data).to.have.property('pendingOrders');",
+                           "    pm.expect(jsonData.data).to.have.property('completedOrders');",
+                           "    pm.expect(jsonData.data).to.have.property('cancelledOrders');",
+                           "    pm.expect(jsonData.data).to.have.property('totalRevenue');",
+                           "    pm.expect(jsonData.data).to.have.property('averageOrderValue');",
+                           "    pm.expect(jsonData.data).to.have.property('topSellingItems');",
+                           "    pm.expect(jsonData.data.topSellingItems).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Business statistics fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/orders/business/{{businessId}}/stats",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders", "business", "{{businessId}}", "stats"]
+                  }
+               }
+            },
+            {
+               "name": "Get Dashboard Statistics",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Dashboard statistics fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('today');",
+                           "    pm.expect(jsonData.data).to.have.property('thisWeek');",
+                           "    pm.expect(jsonData.data).to.have.property('thisMonth');",
+                           "    pm.expect(jsonData.data).to.have.property('recentOrders');",
+                           "    pm.expect(jsonData.data.recentOrders).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Dashboard statistics fetched successfully');",
+                           "});",
+                           "",
+                           "pm.test(\"Dashboard data structure is correct\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    ['today', 'thisWeek', 'thisMonth'].forEach(function(period) {",
+                           "        pm.expect(jsonData.data[period]).to.have.property('totalOrders');",
+                           "        pm.expect(jsonData.data[period]).to.have.property('totalRevenue');",
+                           "        pm.expect(jsonData.data[period]).to.have.property('averageOrderValue');",
+                           "        pm.expect(jsonData.data[period]).to.have.property('topSellingItems');",
+                           "    });",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/orders/business/{{businessId}}/dashboard",
+                     "host": ["{{baseUrl}}"],
+                     "path": [
+                        "orders",
+                        "business",
+                        "{{businessId}}",
+                        "dashboard"
+                     ]
+                  }
+               }
+            },
+            {
+               "name": "Cancel Order",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Order cancelled successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('status', 'cancelled');",
+                           "    pm.expect(jsonData.message).to.eql('Order cancelled successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"reason\": \"Customer requested cancellation\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/orders/{{orderId}}/cancel",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders", "{{orderId}}", "cancel"]
+                  }
+               }
+            }
+         ]
+      },
+      {
+         "name": "👥 User Management (Admin)",
+         "item": [
+            {
+               "name": "Create User",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 201\", function () {",
+                           "    pm.response.to.have.status(201);",
+                           "});",
+                           "",
+                           "pm.test(\"User created successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(201);",
+                           "    pm.expect(jsonData.data).to.have.property('userId');",
+                           "    pm.expect(jsonData.data).to.have.property('userName', 'newstaff');",
+                           "    pm.expect(jsonData.data).to.have.property('email', 'staff@test.com');",
+                           "    pm.expect(jsonData.data).to.have.property('role', 'staff');",
+                           "    pm.expect(jsonData.message).to.eql('User created successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"userName\": \"newstaff\",\n  \"fullname\": \"New Staff Member\",\n  \"email\": \"staff@test.com\",\n  \"password\": \"StaffPassword123\",\n  \"role\": \"staff\",\n  \"businessId\": \"{{businessId}}\",\n  \"businessRole\": \"staff\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/users",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "users"]
+                  }
+               }
+            },
+            {
+               "name": "Get All Users",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Users fetched successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('users');",
+                           "    pm.expect(jsonData.data).to.have.property('total');",
+                           "    pm.expect(jsonData.data).to.have.property('page');",
+                           "    pm.expect(jsonData.data).to.have.property('totalPages');",
+                           "    pm.expect(jsonData.data.users).to.be.an('array');",
+                           "    pm.expect(jsonData.message).to.eql('Users fetched successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/users?page=1&limit=10&isActive=true",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "users"],
+                     "query": [
+                        {
+                           "key": "page",
+                           "value": "1"
+                        },
+                        {
+                           "key": "limit",
+                           "value": "10"
+                        },
+                        {
+                           "key": "isActive",
+                           "value": "true"
+                        }
+                     ]
+                  }
+               }
+            },
+            {
+               "name": "Update User Profile",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 200\", function () {",
+                           "    pm.response.to.have.status(200);",
+                           "});",
+                           "",
+                           "pm.test(\"Profile updated successfully\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(200);",
+                           "    pm.expect(jsonData.data).to.have.property('fullname', 'Updated Test User');",
+                           "    pm.expect(jsonData.message).to.eql('Profile updated successfully');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "PUT",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"fullname\": \"Updated Test User\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/profile",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "profile"]
+                  }
+               }
+            }
+         ]
+      },
+      {
+         "name": "🚫 Error Scenarios",
+         "item": [
+            {
+               "name": "Login with Invalid Credentials",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 401\", function () {",
+                           "    pm.response.to.have.status(401);",
+                           "});",
+                           "",
+                           "pm.test(\"Invalid credentials error\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(401);",
+                           "    pm.expect(jsonData.errors).to.include('Invalid credentials');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "auth": {
+                     "type": "noauth"
+                  },
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"identifier\": \"invalid@email.com\",\n  \"password\": \"wrongpassword\"\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/login",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "login"]
+                  }
+               }
+            },
+            {
+               "name": "Create Order with Invalid Item",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 400\", function () {",
+                           "    pm.response.to.have.status(400);",
+                           "});",
+                           "",
+                           "pm.test(\"Validation error for invalid item\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(400);",
+                           "    pm.expect(jsonData.errors).to.be.an('array');",
+                           "    pm.expect(jsonData.errors.length).to.be.greaterThan(0);",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "POST",
+                  "header": [
+                     {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                     }
+                  ],
+                  "body": {
+                     "mode": "raw",
+                     "raw": "{\n  \"businessId\": \"{{businessId}}\",\n  \"type\": \"dine_in\",\n  \"orderItems\": [\n    {\n      \"itemId\": \"invalid-item-id\",\n      \"quantity\": 1,\n      \"options\": []\n    }\n  ]\n}"
+                  },
+                  "url": {
+                     "raw": "{{baseUrl}}/orders",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["orders"]
+                  }
+               }
+            },
+            {
+               "name": "Access Protected Route without Token",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 401\", function () {",
+                           "    pm.response.to.have.status(401);",
+                           "});",
+                           "",
+                           "pm.test(\"Access token required error\", function () {",
+                           "    var jsonData = pm.response.json();",
+                           "    pm.expect(jsonData.code).to.eql(401);",
+                           "    pm.expect(jsonData.errors).to.include('Access token required');",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "auth": {
+                     "type": "noauth"
+                  },
+                  "method": "GET",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/auth/profile",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["auth", "profile"]
+                  }
+               }
+            }
+         ]
+      },
+      {
+         "name": "🧹 Cleanup",
+         "item": [
+            {
+               "name": "Delete Business (Cleanup)",
+               "event": [
+                  {
+                     "listen": "test",
+                     "script": {
+                        "exec": [
+                           "pm.test(\"Status code is 204\", function () {",
+                           "    pm.response.to.have.status(204);",
+                           "});"
+                        ],
+                        "type": "text/javascript"
+                     }
+                  }
+               ],
+               "request": {
+                  "method": "DELETE",
+                  "header": [],
+                  "url": {
+                     "raw": "{{baseUrl}}/businesses/{{businessId}}",
+                     "host": ["{{baseUrl}}"],
+                     "path": ["businesses", "{{businessId}}"]
+                  }
+               }
+            }
+         ]
+      }
+   ]
+}

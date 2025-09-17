@@ -1,6 +1,7 @@
+// controllers/menuitemoptionvariant.controller.ts
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import MenuItemOptionService from '../services/menuitemoption.service';
+import MenuItemOptionVariantService from '../services/menuitemoptionvariant.service';
 import {
    sendSuccess,
    sendBadRequest,
@@ -8,12 +9,12 @@ import {
    sendInternalServerError,
 } from '../utils/response.util';
 import {
-   CreateMenuItemOptionDTO,
-   UpdateMenuItemOptionDTO,
+   CreateOptionVariantDTO,
+   UpdateOptionVariantDTO,
 } from '../types/menu.type';
 import { AppError, NotFoundError, ValidationError } from '../utils/errors.util';
 
-class MenuItemOptionController {
+class MenuItemOptionVariantController {
    static async create(req: Request, res: Response) {
       try {
          const errors = validationResult(req);
@@ -24,14 +25,14 @@ class MenuItemOptionController {
             );
          }
 
-         const itemId = req.params.id;
-         const optionData = { ...req.body, itemId };
+         const optionId = req.params.optionId;
+         const variantData = { ...req.body, optionId };
 
-         const created = await MenuItemOptionService.create(optionData);
+         const created = await MenuItemOptionVariantService.create(variantData);
          return sendSuccess(
             res,
             created,
-            'Menu item option created successfully',
+            'Option variant created successfully',
             201
          );
       } catch (err: any) {
@@ -59,19 +60,22 @@ class MenuItemOptionController {
          }
 
          if (!req.params.id) {
-            return sendBadRequest(res, ['Menu item option ID is required']);
+            return sendBadRequest(res, ['Option variant ID is required']);
          }
 
-         const dto: UpdateMenuItemOptionDTO = req.body;
-         const updated = await MenuItemOptionService.update(req.params.id, dto);
+         const dto: UpdateOptionVariantDTO = req.body;
+         const updated = await MenuItemOptionVariantService.update(
+            req.params.id,
+            dto
+         );
          return sendSuccess(
             res,
             updated,
-            'Menu item option updated successfully'
+            'Option variant updated successfully'
          );
       } catch (err: any) {
          if (err.code === 'P2025') {
-            return sendNotFound(res, ['Menu item option not found']);
+            return sendNotFound(res, ['Option variant not found']);
          }
          if (err instanceof NotFoundError) {
             return sendNotFound(res, [err.message]);
@@ -97,19 +101,19 @@ class MenuItemOptionController {
          }
 
          if (!req.params.id) {
-            return sendBadRequest(res, ['Menu item option ID is required']);
+            return sendBadRequest(res, ['Option variant ID is required']);
          }
 
-         await MenuItemOptionService.remove(req.params.id);
+         await MenuItemOptionVariantService.remove(req.params.id);
          return sendSuccess(
             res,
             undefined,
-            'Menu item option deleted successfully',
+            'Option variant deleted successfully',
             204
          );
       } catch (err: any) {
          if (err.code === 'P2025') {
-            return sendNotFound(res, ['Menu item option not found']);
+            return sendNotFound(res, ['Option variant not found']);
          }
          if (err instanceof NotFoundError) {
             return sendNotFound(res, [err.message]);
@@ -121,18 +125,20 @@ class MenuItemOptionController {
       }
    }
 
-   static async getAll(req: Request, res: Response) {
+   static async getByOption(req: Request, res: Response) {
       try {
-         const itemId = req.params.itemId;
-         if (!itemId) {
-            return sendBadRequest(res, ['Item ID is required']);
+         const optionId = req.params.optionId;
+         if (!optionId) {
+            return sendBadRequest(res, ['Option ID is required']);
          }
 
-         const options = await MenuItemOptionService.getByItemId(itemId);
+         const variants = await MenuItemOptionVariantService.getByOptionId(
+            optionId
+         );
          return sendSuccess(
             res,
-            options,
-            'Menu item options fetched successfully'
+            variants,
+            'Option variants fetched successfully'
          );
       } catch (err: any) {
          if (err instanceof NotFoundError) {
@@ -156,17 +162,19 @@ class MenuItemOptionController {
          }
 
          if (!req.params.id) {
-            return sendBadRequest(res, ['Menu item option ID is required']);
+            return sendBadRequest(res, ['Option variant ID is required']);
          }
 
-         const option = await MenuItemOptionService.getOne(req.params.id);
-         if (!option) {
-            return sendNotFound(res, ['Menu item option not found']);
+         const variant = await MenuItemOptionVariantService.getOne(
+            req.params.id
+         );
+         if (!variant) {
+            return sendNotFound(res, ['Option variant not found']);
          }
          return sendSuccess(
             res,
-            option,
-            'Menu item option fetched successfully'
+            variant,
+            'Option variant fetched successfully'
          );
       } catch (err: any) {
          if (err instanceof NotFoundError) {
@@ -180,4 +188,4 @@ class MenuItemOptionController {
    }
 }
 
-export default MenuItemOptionController;
+export default MenuItemOptionVariantController;

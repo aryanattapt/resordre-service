@@ -13,33 +13,134 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Add these to your existing schema.prisma
 model Business {
   business_id        String      @id @default(uuid())
   business_name      String
   business_address   String?
   business_phone_num String?     @db.VarChar(20)
+  business_email     String?     @unique
+  business_type      BusinessType @default(restaurant)
   register_date      DateTime    @db.Date
   soft_opening_date  DateTime?   @db.Date
   close_date         DateTime?   @db.Date
   is_active          Boolean     @default(true)
+  owner_id           String?     // Reference to User
+  tax_rate           Decimal     @default(0.00) @db.Decimal(5,4)
+  currency           String      @default("USD") @db.VarChar(3)
+  timezone           String      @default("UTC") @db.VarChar(50)
+  business_logo      String?
+  business_website   String?
   created_at         DateTime    @default(now())
   updated_at         DateTime    @default(now())
 
+  order_counter      Int       @default(0) // For generating sequential order numbers
+
+  // Relationships
   menuItems          MenuItem[]
   menuCategories     MenuCategory[]
   orders             Order[]
+  businessUsers      BusinessUser[]
+
+  @@index([is_active], name: "idx_business_is_active")
+  @@index([business_type], name: "idx_business_type")
+}
+
+enum BusinessType {
+  restaurant
+  cafe
+  fast_food
+  food_truck
+  bakery
+  bar
+  catering
+}
+
+// Junction table for business-user relationships
+model BusinessUser {
+  id          String       @id @default(uuid())
+  business    Business     @relation(fields: [business_id], references: [business_id], onDelete: Cascade)
+  user        User         @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  business_id String
+  user_id     String
+  role        BusinessRole @default(staff)
+  is_active   Boolean      @default(true)
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @default(now())
+
+  @@unique([business_id, user_id])
+  @@index([business_id], name: "idx_business_user_business_id")
+  @@index([user_id], name: "idx_business_user_user_id")
+}
+
+enum BusinessRole {
+  owner
+  manager
+  staff
+  cashier
+  admin
 }
 
 model User {
-  user_id      String   @id @default(uuid())
-  user_name    String
-  fullname     String
-  email        String   @unique
+  user_id       String   @id @default(uuid())
+  user_name     String   @unique
+  fullname      String
+  email         String   @unique
   password_hash String
-  role         String   @db.VarChar(50)
-  is_active    Boolean  @default(true)
-  created_at   DateTime @default(now())
-  updated_at   DateTime @default(now())
+  role          UserRole @default(staff)
+  is_active     Boolean  @default(true)
+  is_verified   Boolean  @default(false)
+  last_login    DateTime?
+  failed_login_attempts Int @default(0)
+  locked_until  DateTime?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now())
+
+  businessUsers BusinessUser[]
+  refreshTokens RefreshToken[]
+  passwordResets PasswordReset[]
+
+  @@index([email], name: "idx_user_email")
+  @@index([user_name], name: "idx_user_username")
+  @@index([is_active], name: "idx_user_is_active")
+}
+
+enum UserRole {
+  super_admin
+  admin
+  owner
+  manager
+  staff
+  cashier
+}
+
+model RefreshToken {
+  token_id    String   @id @default(uuid())
+  user        User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id     String
+  token       String   @unique
+  expires_at  DateTime
+  is_revoked  Boolean  @default(false)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+
+  @@index([user_id], name: "idx_refresh_token_user_id")
+  @@index([token], name: "idx_refresh_token_token")
+  @@index([expires_at], name: "idx_refresh_token_expires_at")
+}
+
+model PasswordReset {
+  reset_id   String   @id @default(uuid())
+  user       User     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  user_id    String
+  token      String   @unique
+  expires_at DateTime
+  is_used    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@index([user_id], name: "idx_password_reset_user_id")
+  @@index([token], name: "idx_password_reset_token")
+  @@index([expires_at], name: "idx_password_reset_expires_at")
 }
 
 model MenuCategory {
@@ -79,82 +180,162 @@ model MenuItem {
 }
 
 model MenuItemOption {
-  option_id   String     @id @default(uuid())
-  item        MenuItem   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
-  item_id     String
-  name        String
-  price       Decimal    @default(0.0) 
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @default(now())
+  option_id      String     @id @default(uuid())
+  item           MenuItem   @relation(fields: [item_id], references: [item_id], onDelete: Cascade)
+  item_id        String
+  name           String
+  is_required    Boolean    @default(false)
+  max_selections Int?       // null = unlimited, number = max selections allowed
+  created_at     DateTime   @default(now())
+  updated_at     DateTime   @default(now())
 
+  variants       MenuItemOptionVariant[]
   orderItemOptions OrderItemOption[]
 
   @@index([item_id], name: "idx_menu_item_option_item_id")
 }
 
-model Order {
-  order_id     String     @id @default(uuid())
-  business     Business   @relation(fields: [business_id], references: [business_id], onDelete: Cascade)
-  business_id  String
-  table_id     String?
-  customer_id  String?
-  type         OrderType
-  status       OrderStatus
-  subtotal     Decimal    
-  tax          Decimal    
-  delivery_fee Decimal    @default(0.0) 
-  discount     Decimal    @default(0.0) 
-  grand_total  Decimal    
-  created_at   DateTime   @default(now())
-  updated_at   DateTime   @default(now())
+model MenuItemOptionVariant {
+  variant_id   String           @id @default(uuid())
+  option       MenuItemOption   @relation(fields: [option_id], references: [option_id], onDelete: Cascade)
+  option_id    String
+  variant_name String
+  price        Decimal
+  is_available Boolean          @default(true)
+  created_at   DateTime         @default(now())
+  updated_at   DateTime         @default(now())
 
-  orderItems   OrderItem[]
+  orderItemVariants OrderItemOptionVariant[]
+
+  @@index([option_id], name: "idx_menu_item_option_variant_option_id")
+}
+// Add/update these models in your existing schema.prisma
+// schema.prisma - Updated order-related models
+model Order {
+  order_id       String        @id @default(uuid())
+  business       Business      @relation(fields: [business_id], references: [business_id], onDelete: Cascade)
+  business_id    String
+  table_id       String?
+  customer_id    String?
+  customer_name  String?
+  customer_phone String?
+  order_number   String        @unique
+  type           OrderType
+  status         OrderStatus   @default(pending)
+  subtotal       Decimal       @db.Decimal(10,2)
+  tax            Decimal       @db.Decimal(10,2)
+  delivery_fee   Decimal       @default(0.0) @db.Decimal(10,2)
+  discount       Decimal       @default(0.0) @db.Decimal(10,2)
+  tip_amount     Decimal       @default(0.0) @db.Decimal(10,2)
+  grand_total    Decimal       @db.Decimal(10,2)
+  payment_status PaymentStatus @default(pending)
+  payment_method String?
+  notes          String?
+  estimated_time Int?
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @default(now())
+
+  orderItems     OrderItem[]
+  payments       Payment[]
 
   @@index([business_id], name: "idx_orders_business_id")
   @@index([status], name: "idx_orders_status")
   @@index([type], name: "idx_orders_type")
+  @@index([order_number], name: "idx_orders_order_number")
+  @@index([created_at], name: "idx_orders_created_at")
 }
 
 enum OrderType {
   dine_in
+  takeaway
   delivery
 }
 
 enum OrderStatus {
   pending
-  in_progress
+  confirmed
+  preparing
   ready
+  out_for_delivery
   completed
   cancelled
 }
 
-model OrderItem {
-  order_item_id String    @id @default(uuid())
-  order         Order     @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
-  item          MenuItem  @relation(fields: [item_id], references: [item_id])
-  order_id      String
-  item_id       String
-  item_name     String
-  price         Decimal   
-  quantity      Int       @default(1)
-  note          String?
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @default(now())
+enum PaymentStatus {
+  pending
+  partial
+  paid
+  refunded
+}
 
-  options       OrderItemOption[]
+model OrderItem {
+  order_item_id        String    @id @default(uuid())
+  order                Order     @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
+  item                 MenuItem  @relation(fields: [item_id], references: [item_id])
+  order_id             String
+  item_id              String
+  item_name            String
+  base_price           Decimal   @db.Decimal(10,2)
+  quantity             Int       @default(1)
+  total_price          Decimal   @db.Decimal(10,2)
+  special_instructions String?
+  created_at           DateTime  @default(now())
+  updated_at           DateTime  @default(now())
+
+  options              OrderItemOption[]
 
   @@index([order_id], name: "idx_order_item_order_id")
+  @@index([item_id], name: "idx_order_item_item_id")
 }
 
 model OrderItemOption {
-  id              String           @id @default(uuid())
-  order_item      OrderItem        @relation(fields: [order_item_id], references: [order_item_id], onDelete: Cascade)
-  option          MenuItemOption   @relation(fields: [option_id], references: [option_id])
-  order_item_id   String
-  option_id       String
-  name            String
-  price           Decimal          @default(0.0) 
-  created_at      DateTime         @default(now())
+  id            String           @id @default(uuid())
+  order_item    OrderItem        @relation(fields: [order_item_id], references: [order_item_id], onDelete: Cascade)
+  option        MenuItemOption   @relation(fields: [option_id], references: [option_id])
+  order_item_id String
+  option_id     String
+  option_name   String
+  created_at    DateTime         @default(now())
+
+  variants      OrderItemOptionVariant[]
 
   @@index([order_item_id], name: "idx_order_item_option_order_item_id")
+}
+
+model OrderItemOptionVariant {
+  id                   String                  @id @default(uuid())
+  order_item_option    OrderItemOption         @relation(fields: [order_item_option_id], references: [id], onDelete: Cascade)
+  variant              MenuItemOptionVariant   @relation(fields: [variant_id], references: [variant_id])
+  order_item_option_id String
+  variant_id           String
+  variant_name         String
+  variant_price        Decimal                 @db.Decimal(10,2)
+  created_at           DateTime                @default(now())
+
+  @@index([order_item_option_id], name: "idx_order_item_option_variant_order_item_option_id")
+}
+
+model Payment {
+  payment_id     String        @id @default(uuid())
+  order          Order         @relation(fields: [order_id], references: [order_id], onDelete: Cascade)
+  order_id       String
+  amount         Decimal       @db.Decimal(10,2)
+  payment_method PaymentMethod
+  status         PaymentStatus @default(pending)
+  transaction_id String?
+  reference      String?
+  processed_at   DateTime?
+  created_at     DateTime      @default(now())
+  updated_at     DateTime      @default(now())
+
+  @@index([order_id], name: "idx_payment_order_id")
+  @@index([status], name: "idx_payment_status")
+}
+
+enum PaymentMethod {
+  cash
+  card
+  digital_wallet
+  bank_transfer
+  credit
 }
